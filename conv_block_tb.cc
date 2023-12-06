@@ -48,7 +48,7 @@ int main(void) {
   // Input and output array initialization
   float *a = (float *) malloc(sizeof(float) * 4096); // IC * M * N);
   float *weight = (float *) malloc(sizeof(float) * 4096); // OC * IC * KH * KW);
-  float *c = (float *) malloc(sizeof(float) * 4096); // M * O);
+  float *c = (float *) malloc(sizeof(float) * 4096); // OC * OH * OW);
 
   // Test outcome
   bool correct = true;
@@ -120,7 +120,7 @@ int main(void) {
   }
 
   // conv_bn_relu implementation
-  conv_block(M, N, O, a, b, c);
+  conv_block(M, N, IC, OC, a, weight, c);
 
   // a_pad init
   // printf("-----------A_PAD init----------- \n");
