@@ -60,7 +60,7 @@ int main(void) {
   
   // BN parameter
   float moving_mean[OC];
-  float mobing_var[OC];
+  float moving_var[OC];
   float eps = 0.00001;
   float gamma[OC];
   float beta[OC];

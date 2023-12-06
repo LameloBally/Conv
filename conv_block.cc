@@ -1,12 +1,14 @@
 /*!
  *  Copyright (c) 2018 by Contributors
  * \file conv_block.cc
- * \brief Matrix-Matrix Multiply HLS design.
+ * \brief Convolution Multiply HLS design.
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "./conv_block.h"
+#include <algorithm>
+#include <cmath>
 
 
 // This module performs matrix multiplication of matrices A and B
@@ -15,7 +17,6 @@
 
 
 
-'커널 사이즈 : 3, 패딩 = 1, 스트라이드 = 1'
 
 void conv_block(
 		int M,
@@ -41,9 +42,8 @@ void conv_block(
 	
 	#pragma HLS INTERFACE s_axilite port = return bundle = CONTROL_BUS
 
-	'stride = 1, padding = 1인 경우의 OH, OW' 
-  	int OH = (N + 2  - KH)  + 1 ;
-	int OW = (M + 2  - KW)  + 1 ;
+  	int OH = (N + 2  - 3)  + 1 ;
+	int OW = (M + 2  - 3)  + 1 ;
 
 	int PADDED_M = M + 2;
   	int PADDED_N = N + 2;
@@ -53,26 +53,24 @@ void conv_block(
   	float c_buff[OC][OH][OW];
 
 	#pragma HLS ARRAY_PARTITION variable=a_buff dim=2 type=complete
-	#pragma HLS ARRAY_PARTITION variable=b_buff dim=0 type=complete
+	#pragma HLS ARRAY_PARTITION variable=w_buff dim=0 type=complete
 	#pragma HLS ARRAY_PARTITION variable=c_buff dim=2 type=complete
 
 	memcpy(&a_buff[0][0], const_cast<float*>(a), sizeof(float) * IC * M * N);
 	memcpy(&w_buff[0][0], const_cast<float*>(w), sizeof(float) * OC * IC * M * N);
   	memcpy(&c_buff[0][0], const_cast<float*>(c), sizeof(float) * OC * OH * OW);
 
-
-	'0 Padding 영역'
 	float a_pad[IC][PADDED_M][PADDED_N];
 
 	for (int ic=0; ic < IC; ic ++){
 		for (int p_m=0; p_m < PADDED_M; p_m++){
 			for (int p_n=0; p_n < PADDED_N; p_n++){
 				a_pad[ic][p_m][p_n] = 0;
-				// printf("%.3f ", a_pad[ic][p_m][p_n]);
+
 			}
-		// printf("\n");
+
 		}
-		// printf("\n");
+
 	}
 
 	for (int ic = 0; ic < IC; ic++) {
@@ -83,8 +81,7 @@ void conv_block(
         }
     }
 
-	'im2 col col_buff라는 activation과 w_matrix를 만듬
-	w_matrix의 row는 커널 하나를 의미하고, col_buff의 컬럼은 커널이 보는 input 패치를 의미함'
+
 
 	int KH = 3;
 	int KW = 3;
@@ -132,8 +129,6 @@ void conv_block(
 		}
 	}
 
-	'원래는 w_matrix와 col_buff의 곱으로 Mat Mul을 해야하나, row major order이기 때문에
-	w_matrix와 col_buff의 transpose의 row끼리의 내적 연산으로 결과를 계산하도록함'
 
 	float col_buff_transposed[OH * OW][IC * KH * KW];
 
@@ -208,7 +203,7 @@ void conv_block(
 		}
 	}
 
-	// Store C
-  memcpy(const_cast<float*>(c), const_cast<float*>(&c_buff[0][0]), sizeof(float) * OC * OH * OW);
+
+  memcpy(const_cast<float*>(c), &c_buff[0][0][0], sizeof(float) * OC * OH * OW);
 }
 
