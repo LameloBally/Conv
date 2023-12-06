@@ -13,13 +13,15 @@
 #define _GEMM_H_
 
 
+
 #ifndef NO_SIM
 void conv_block(
   int M,
   int N,
-  int O,
+  int IC,
+	int OC,
   volatile float *a,
-  volatile float *b,
+  volatile float *w,
   volatile float *c);
 #endif  // NO_SIM
 
