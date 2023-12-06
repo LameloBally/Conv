@@ -204,6 +204,6 @@ void conv_block(
 	}
 
 
-  memcpy(const_cast<float*>(c), const_cast<float*>(&c_buff[0][0]), sizeof(float) * OC * OH * OW);
+  memcpy(const_cast<float*>(c), &c_buff[0][0][0], sizeof(float) * OC * OH * OW);
 }
 
